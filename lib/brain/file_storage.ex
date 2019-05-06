@@ -16,12 +16,12 @@ defmodule Brain.FileStorage do
   end
 
   defp get_all_below(root, startdir) do
-    Enum.map(Path.wildcard("#{root}/#{startdir}/*"), fn(raw) -> 
+    Enum.map(Path.wildcard("#{root}/#{startdir}/*", [true] ), fn(raw) -> 
       %{:path => Path.relative_to(raw, root), 
         :dir => Path.dirname(raw),
         :type => String.downcase(Regex.replace(~r/^\./, Path.extname(raw), "")),
         :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(raw, Path.extname(raw)), " "),
-        :children => get_all_below(root, raw)
+        :children => get_all_below("#{startdir}", Path.relative_to(raw, startdir))
       }
     end)
     |> Enum.sort(fn a, b -> a.type >= b.type end)
