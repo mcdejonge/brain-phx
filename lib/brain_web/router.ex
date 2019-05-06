@@ -13,6 +13,13 @@ defmodule BrainWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/file", BrainWeb.File do
+    pipe_through :browser
+
+    resources "/", FileController
+
+  end
+
   scope "/", BrainWeb do
     pipe_through :browser
 

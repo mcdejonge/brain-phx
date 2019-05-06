@@ -1,0 +1,12 @@
+<ul>
+  <%= for file <- @files do %>
+    <%= if length(file.children) > 0 do %>
+      <li class="with_children">
+        [+] <%= file.title %> (<%= length(file.children) %>)
+        <%= render("file_list.html", files: file.children) %>
+      </li>
+      <%= else %>
+      <li class="single"><%= file.title %></li>
+    <% end %>
+  <% end %>
+</ul>
