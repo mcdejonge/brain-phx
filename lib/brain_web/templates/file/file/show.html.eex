@@ -1,0 +1,9 @@
+<div class="file-list"><%= render("file_list.html", files: @files) %></div>
+<div class="content">
+  <h1>File title</h1>
+
+  <h2><%= @path_info %></h2>
+  <div class="file_contents">
+    File contents
+  </div>
+</div>
