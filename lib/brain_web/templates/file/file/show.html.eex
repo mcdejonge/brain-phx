@@ -1,9 +1,12 @@
 <div class="file-list"><%= render("file_list.html", files: @files) %></div>
 <div class="content">
-  <h1>File title</h1>
+  <h1><%= @file.title %></h1>
 
-  <h2><%= @path_info %></h2>
   <div class="file_contents">
-    File contents
+    <%= if @file.type == "md" do %>
+      <%= raw(Earmark.as_html!(BrainWeb.StripUTF8.strip_utf(@file.contents))) %>
+      <%= else %>
+      <%= @file.contents %>
+    <%= end %>
   </div>
 </div>

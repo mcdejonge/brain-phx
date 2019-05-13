@@ -16,7 +16,10 @@ defmodule BrainWeb.Router do
   scope "/file", BrainWeb.File do
     pipe_through :browser
 
-    resources "/", FileController
+    resources "/", FileController, except: [:show]
+
+    get "/*file", FileController, :show
+
 
   end
 

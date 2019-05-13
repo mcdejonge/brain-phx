@@ -1,3 +1,36 @@
 /* This file is for your main application css. */
 
 @import "./phoenix.css";
+
+.file-list {
+  display: block;
+  float: left;
+  width: 20%;
+  height: 100%;
+  overflow: auto;
+  border-right: 1px solid #999;
+}
+
+.content {
+  width: 75%;
+  display: block;
+  float: right;
+}
+
+.file-list li {
+  list-style: none;
+}
+li.submenu {         
+  list-style: none;            
+  cursor: pointer;             
+}
+li.submenu-closed div {
+  display: none;
+}
+
+
+li.submenu:before {
+    content: "+";
+    margin-right: 4px;
+}
+
