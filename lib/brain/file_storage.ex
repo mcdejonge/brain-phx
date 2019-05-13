@@ -99,7 +99,7 @@ defmodule Brain.FileStorage do
 
   defp find_repaired_path(_item = %{:path => path, :type => type}, requested_path) when path == requested_path <> "." <> type do
     Logger.info("Repaired path is " <> path)
-    path
+    Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
   end
 
   defp find_repaired_path(itemlist, requested_path) when is_list(itemlist) do
