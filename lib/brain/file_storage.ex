@@ -4,6 +4,8 @@ defmodule Brain.FileStorage do
   Module for handling file storage. 
   """
 
+  require Logger
+
   @doc """
   Returns a list of all available files (recursively).
   Each item in the list looks like this:
@@ -15,7 +17,39 @@ defmodule Brain.FileStorage do
 """
   def get_all() do
     basedir = Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]
-    get_all_below(basedir, basedir)
+    
+    init_cache_if_needed()
+
+    # If there is nothing in the cache, either we haven't loaded it yet - so
+    # load it - or there are no files so refreshing it won't hurt.
+    file_list = :ets.lookup(:file_storage, "all_files")
+    cond do
+      length(file_list) == 0 ->
+        Logger.warn("Cache is empty. Refreshing it.")
+        :ets.insert(:file_storage, {"all_files", get_all_below(basedir, basedir)})
+        [{_key, file_list}] = :ets.lookup(:file_storage, "all_files")
+        file_list
+      true ->
+        Logger.info("Cache is not empty. Returning its contents.")
+        file_list
+      end
+  end
+
+
+  defp init_cache_if_needed do
+    try do
+      _ = :ets.lookup(:file_storage, "all_files")
+      Logger.info("Cache exists.")
+    rescue
+      ArgumentError -> 
+        Logger.warn("Cache does not exist. Initialize it.")
+        _ = :ets.new(:file_storage, [:set, :protected, :named_table])
+    end
+  end
+
+
+  def get_all_below_test(root, startdir) do
+    get_all_below(root, startdir)
   end
 
   defp get_all_below(root, startdir) do
