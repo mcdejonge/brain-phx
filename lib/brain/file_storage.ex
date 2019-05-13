@@ -22,17 +22,16 @@ defmodule Brain.FileStorage do
 
     # If there is nothing in the cache, either we haven't loaded it yet - so
     # load it - or there are no files so refreshing it won't hurt.
-    file_list = :ets.lookup(:file_storage, "all_files")
+    cached_data = :ets.lookup(:file_storage, "all_files")
     cond do
-      length(file_list) == 0 ->
+      length(cached_data) == 0 ->
         Logger.warn("Cache is empty. Refreshing it.")
         :ets.insert(:file_storage, {"all_files", get_all_below(basedir, basedir)})
-        [{_key, file_list}] = :ets.lookup(:file_storage, "all_files")
-        file_list
       true ->
         Logger.info("Cache is not empty. Returning its contents.")
-        file_list
       end
+    [{_key, file_list}] = :ets.lookup(:file_storage, "all_files")
+    file_list
   end
 
 
@@ -47,19 +46,17 @@ defmodule Brain.FileStorage do
     end
   end
 
-
-  def get_all_below_test(root, startdir) do
-    get_all_below(root, startdir)
-  end
-
   defp get_all_below(root, startdir) do
+    
     Enum.map(Path.wildcard("#{startdir}/*", [true] ), fn(raw) -> 
+      {_, stats} = File.stat(raw)
       %{
         :path => Path.relative_to(raw, root), 
         :dir => Path.dirname(raw),
         :type => String.downcase(Regex.replace(~r/^\./, Path.extname(raw), "")),
         :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(raw, Path.extname(raw)), " "),
-        :children => get_all_below(root, raw)
+        :children => get_all_below(root, raw),
+        :ctime => stats.ctime
       }
     end)
     |> Enum.sort(fn a, b -> a.type >= b.type end)
@@ -75,7 +72,7 @@ defmodule Brain.FileStorage do
   path (relative to content dir)
   type
   contents
-  TODO make it a struct
+  ctime
   """
   def get_file(path) do
     full_path = Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
