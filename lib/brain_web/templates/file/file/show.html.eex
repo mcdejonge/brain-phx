@@ -3,10 +3,10 @@
   <h1><%= @file.title %></h1>
 
   <div class="file_contents">
-    <%= if @file.type == "md" do %>
-      <%= raw(Earmark.as_html!(BrainWeb.StripUTF8.strip_utf(@file.contents))) %>
-      <%= else %>
-      <%= @file.contents %>
+    <%= case @file.type do %>
+      <% "md" -> %> <%= raw(Earmark.as_html!(BrainWeb.StripUTF8.strip_utf(@file.contents))) %>
+        <% "html" %> <%= @file.contents %>
+        <% _ -> %> <pre><code><%= @file.contents %></code></pre>
     <%= end %>
   </div>
 </div>
