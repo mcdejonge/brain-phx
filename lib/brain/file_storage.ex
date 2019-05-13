@@ -13,7 +13,7 @@ defmodule Brain.FileStorage do
   type : the file type (""if it's a directory)
   path : the file system path
   children : items below this item (only relevant for directories - [] for files).
-  TODO : date last modified
+  ctime : time last modified
 """
   def get_all() do
     basedir = Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]
@@ -77,23 +77,60 @@ defmodule Brain.FileStorage do
   def get_file(path) do
     full_path = Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
     cond do
-      ! File.exists?(full_path) -> Nil
+      File.exists?(full_path) -> get_file_verified_to_exist(full_path)
       File.dir?(full_path) -> Nil
-      true -> get_file_verified_to_exist(path)
-        
+      true -> get_file_at_repaired_path(path)
     end
   end
 
+  @doc """
+  Vimwiki links don't contain file extensions. This makes them not work.
+  Attempt to find the real path for an invalid link.
+  """
+  defp get_file_at_repaired_path(false_path) do
+    correct_path = find_repaired_path(get_all(), false_path)
+    cond do
+      # Calling get_file on the fixed path would probably work, but would be
+      # circular. So no.
+      correct_path -> get_file_verified_to_exist(correct_path)
+      true -> Nil
+    end
+  end
+
+  defp find_repaired_path(_item = %{:path => path, :type => type}, requested_path) when path == requested_path <> "." <> type do
+    Logger.info("Repaired path is " <> path)
+    path
+  end
+
+  defp find_repaired_path(itemlist, requested_path) when is_list(itemlist) do
+    Logger.info("Looking for " <> requested_path <> " in list of items")
+    Enum.find_value(itemlist, fn(item) -> 
+      find_repaired_path(item, requested_path)
+    end)
+  end
+
+  defp find_repaired_path(item = %{}, requested_path) do
+    Logger.info("Looking for " <> requested_path <> " in children of " <> item.path)
+    Enum.find_value(item.children, fn(child) ->
+      find_repaired_path(child, requested_path)
+    end)
+  end
+
+
+
   defp get_file_verified_to_exist(path) do
-    full_path = Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
-    {_, contents} = File.read(full_path)
+    {_, contents} = File.read(path)
+    {_, stats} = File.stat(path)
+    Logger.info("In get file verified to exist at " <> path <> ": " <> inspect(stats))
     %{
       :path => path,
-      :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(full_path, Path.extname(full_path)), " "),
-      :type => String.downcase(Regex.replace(~r/^\./, Path.extname(full_path), "")),
+      :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(path, Path.extname(path)), " "),
+      :type => String.downcase(Regex.replace(~r/^\./, Path.extname(path), "")),
       :contents => contents,
+      #:ctime => stats.ctime
     }
 
   end
+
   
 end
