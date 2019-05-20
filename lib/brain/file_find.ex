@@ -6,10 +6,10 @@ defmodule Brain.FileFind do
 
   ## TODO list:
 
-  ### V. 0.3
-  * Use Flow to do the indexing
-  
+
   ### FAR into the future
+
+  * Allow searching multiple terms
   * Keep track of neighbors
   * Build a graph
   * Get fancy.
