@@ -64,29 +64,44 @@ defmodule Brain.FileFind do
 
   Throws an exception if a file can't be indexed.
 
-  TODO use Flow (I think?) to parallelize indexing
-
-
   ## Parameters
 
   - dir: the directory to index
   """
   def index_dir!(dir) do
-    index_dir!(%{}, dir)
+    index_dir!(%{} , dir)
   end
 
+  # As it turns out, the version that uses Flow is *slower* than the version
+  # that does not. So here's the Flow version we don't currently use.
+  #defp index_dir_flow!(index, dir) do
+    #Flow.from_enumerable(Path.wildcard("#{dir}/*"))
+    #|> Flow.reduce(fn -> index end, fn(path, index_in_fn) ->
+      #cond do
+        #File.dir?(path) -> index_dir!(index_in_fn, path)
+        ### Only index txt and md files
+        #File.regular?(path) && String.match?(path, ~r/\.(txt|md)$/) 
+          #-> Map.put(index_in_fn, path, index_file!(path))
+        #true -> index_in_fn
+      #end
+    #end)
+    #|> Enum.into(%{})
+  #end
+
+  # And here is the non-flow version.
   defp index_dir!(index, dir) do
-    Enum.reduce(Path.wildcard("#{dir}/*"), index, fn(path, index_in_fn) ->
+    Path.wildcard("#{dir}/*")
+    |> Enum.reduce(index, fn(path, index_in_fn) ->
       cond do
         File.dir?(path) -> index_dir!(index_in_fn, path)
         # Only index txt and md files
         File.regular?(path) && String.match?(path, ~r/\.(txt|md)$/) 
           -> Map.put(index_in_fn, path, index_file!(path))
-        true -> index
+        true -> index_in_fn
       end
     end)
-
   end
+
 
   @doc """
   Return files in the given index that match the given search term: a map and the number of occurences of the term.
