@@ -4,8 +4,8 @@ defmodule Brain.FileFindServer do
   require Logger
 
   # Client
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, Nil)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
   def find(pid, term) do
@@ -58,6 +58,7 @@ defmodule Brain.FileFindServer do
     Logger.warn("Refreshing file index cache.")
     basedir = Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]
     :ets.insert(:file_index, {"file_index", Brain.FileFind.index_dir!(basedir)})
+    Logger.warn("Done refreshing file index cache.")
   end
 
 end
