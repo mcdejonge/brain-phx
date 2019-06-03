@@ -29,6 +29,8 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :phoenix, :format_encoders, json: Jason
+
 
 
 # Import environment specific config. This must remain at the bottom
