@@ -31,13 +31,13 @@ defmodule Brain.FileFindServer do
         _ = :ets.new(:file_index, [:set, :protected, :named_table])
     end
 
-    {:ok, Nil}
+    {:ok, nil}
   end
 
   @impl true
   def handle_call({:term, term}, _, _) do
     result = call_find_in_index_cache(:ets.lookup(:file_index, "file_index"), term)
-    {:reply, result, Nil}
+    {:reply, result, nil}
   end
 
   defp call_find_in_index_cache([{_key, index}], term) when is_map(index) do
@@ -51,7 +51,7 @@ defmodule Brain.FileFindServer do
   @impl true
   def handle_cast(:refresh, _state) do
     refresh_index()
-    {:noreply, Nil}
+    {:noreply, nil}
   end
 
   defp refresh_index do

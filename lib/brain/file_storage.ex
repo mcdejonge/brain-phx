@@ -16,7 +16,6 @@ defmodule Brain.FileStorage do
   ctime : time last modified
 """
   def get_all() do
-    basedir = Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]
     
     init_cache_if_needed()
 
@@ -26,7 +25,7 @@ defmodule Brain.FileStorage do
     cond do
       length(cached_data) == 0 ->
         Logger.warn("Cache is empty. Refreshing it.")
-        :ets.insert(:file_storage, {"all_files", get_all_below(basedir, basedir)})
+        refresh_cache()
       true ->
         Logger.info("Cache is not empty. Returning its contents.")
       end
@@ -34,6 +33,11 @@ defmodule Brain.FileStorage do
     file_list
   end
 
+  defp refresh_cache() do
+    Logger.info("Refreshing cache.")
+    basedir = Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]
+    :ets.insert(:file_storage, {"all_files", get_all_below(basedir, basedir)})
+  end
 
   defp init_cache_if_needed do
     try do
@@ -67,7 +71,7 @@ defmodule Brain.FileStorage do
   @doc """
   Return data for the requested file. The path is expanded to the full path, ie appended to the base content dir.
   path : the path to open
-  Returns: Nil if the file does not exist or is a directory, otherwise a map with:
+  Returns: nil if the file does not exist or is a directory, otherwise a map with:
   title
   path (relative to content dir)
   type
@@ -78,8 +82,26 @@ defmodule Brain.FileStorage do
     full_path = Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
     cond do
       File.exists?(full_path) -> get_file_verified_to_exist(full_path)
-      File.dir?(full_path) -> Nil
+      File.dir?(full_path) -> nil
       true -> get_file_at_repaired_path(path)
+    end
+  end
+
+  def create_file!(path) do
+    full_path = Path.join(Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir], path)
+    Logger.info("Creating new file at path #{full_path}.")
+    cond do
+      File.exists?(full_path) ->
+        raise "File already exists."
+      true ->
+        parent_dir = Path.dirname(full_path)
+        cond do
+          File.exists?(parent_dir) -> true
+          true -> File.mkdir!(parent_dir)
+        end
+        File.touch!(full_path)
+        Logger.info("Successfully created file.")
+        refresh_cache()
     end
   end
 
@@ -93,7 +115,7 @@ defmodule Brain.FileStorage do
       # Calling get_file on the fixed path would probably work, but would be
       # circular. So no.
       correct_path -> get_file_verified_to_exist(correct_path)
-      true -> Nil
+      true -> nil
     end
   end
 
@@ -103,14 +125,14 @@ defmodule Brain.FileStorage do
   end
 
   defp find_repaired_path(itemlist, requested_path) when is_list(itemlist) do
-    Logger.info("Looking for " <> requested_path <> " in list of items")
+    Logger.debug("Looking for " <> requested_path <> " in list of items")
     Enum.find_value(itemlist, fn(item) -> 
       find_repaired_path(item, requested_path)
     end)
   end
 
   defp find_repaired_path(item = %{}, requested_path) do
-    Logger.info("Looking for " <> requested_path <> " in children of " <> item.path)
+    Logger.debug("Looking for " <> requested_path <> " in children of " <> item.path)
     Enum.find_value(item.children, fn(child) ->
       find_repaired_path(child, requested_path)
     end)

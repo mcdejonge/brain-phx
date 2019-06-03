@@ -5,7 +5,8 @@ defmodule BrainWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    # TODO for testing disable CSRF. Enable it when done testing
+    #plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
 
@@ -16,7 +17,7 @@ defmodule BrainWeb.Router do
   scope "/file", BrainWeb.File do
     pipe_through :browser
 
-    resources "/", FileController, except: [:show]
+    resources "/", FileController, except: [:show, :edit, :new]
 
     get "/*file", FileController, :show
 
