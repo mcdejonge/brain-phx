@@ -60,7 +60,9 @@ defmodule Brain.FileStorage do
         :type => String.downcase(Regex.replace(~r/^\./, Path.extname(raw), "")),
         :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(raw, Path.extname(raw)), " "),
         :children => get_all_below(root, raw),
-        :ctime => stats.ctime
+        # Converting to UTC is a lot less work than doing it properly. It's
+        # not important anyway (for now).
+        :ctime => stats.ctime |> NaiveDateTime.from_erl!() |> DateTime.from_naive!("Etc/UTC")
       }
     end)
     |> Enum.sort(fn a, b -> a.type >= b.type end)
@@ -125,14 +127,14 @@ defmodule Brain.FileStorage do
   end
 
   defp find_repaired_path(itemlist, requested_path) when is_list(itemlist) do
-    Logger.debug("Looking for " <> requested_path <> " in list of items")
+    #Logger.debug("Looking for " <> requested_path <> " in list of items")
     Enum.find_value(itemlist, fn(item) -> 
       find_repaired_path(item, requested_path)
     end)
   end
 
   defp find_repaired_path(item = %{}, requested_path) do
-    Logger.debug("Looking for " <> requested_path <> " in children of " <> item.path)
+    #Logger.debug("Looking for " <> requested_path <> " in children of " <> item.path)
     Enum.find_value(item.children, fn(child) ->
       find_repaired_path(child, requested_path)
     end)
@@ -143,12 +145,14 @@ defmodule Brain.FileStorage do
   defp get_file_verified_to_exist(path) do
     {_, contents} = File.read(path)
     {_, stats} = File.stat(path)
-    Logger.info("In get file verified to exist at " <> path <> ": " <> inspect(stats))
+    #Logger.info("In get file verified to exist at " <> path <> ": " <> inspect(stats))
     %{
-      :path => path,
+      :path => Path.relative_to(path, Application.get_env(:brain, BrainWeb.Endpoint)[:content_dir]),
+
       :title => Regex.replace(~r/[^a-zA-Z0-9-]+/, Path.basename(path, Path.extname(path)), " "),
       :type => String.downcase(Regex.replace(~r/^\./, Path.extname(path), "")),
       :contents => contents,
+      # No CTime. Don't know why, actually.
       #:ctime => stats.ctime
     }
 

@@ -24,8 +24,12 @@ defmodule BrainWeb.File.FileControllerBase do
 
   @doc """
   Returns a single file. Path is taken from path_info in conn
-
+  UNLESS params has an entry path, in which case this entry overrules it
   """
+  def show(conn, %{"path" => path}) do
+    {conn, Brain.FileStorage.get_file(path)}
+  end
+
   def show(conn, _params) do
     [_| path_elems] = conn.path_info
     path = Enum.map(path_elems, &(URI.decode(&1)))

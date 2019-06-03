@@ -1,4 +1,7 @@
 defmodule BrainWeb.File.FileController do
+  @moduledoc """
+  HTML version of the file controller.
+  """
   use BrainWeb, :controller
 
   alias BrainWeb.File.FileControllerBase, as: FCBase

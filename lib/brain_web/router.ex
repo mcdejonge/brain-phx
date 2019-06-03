@@ -20,8 +20,12 @@ defmodule BrainWeb.Router do
     resources "/", FileController, except: [:show, :edit, :new]
 
     get "/*file", FileController, :show
+  end
 
-
+  scope "/api/file", BrainWeb.File do
+    pipe_through :api
+    resources "/", FileControllerJSON, except: [:show, :edit, :new]
+    get "/*file", FileControllerJSON, :show
   end
 
   scope "/", BrainWeb do
