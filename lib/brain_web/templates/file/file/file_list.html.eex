@@ -1,12 +1,15 @@
-<ul>
-  <%= for file <- @files do %>
-    <%= if length(file.children) > 0 do %>
-      <li class="submenu">
-        <%= file.title %> (<%= length(file.children) %>)
-        <%= render("file_list.html", files: file.children) %>
-      </li>
-      <%= else %>
-      <li class="single"><%= link(file.title, to: "/file/" <> file.path) %></li>
+<div id="file-list">
+  <ul> 
+    <%= for file <- @files do %>
+      <%= if length(file.children) > 0 do %>
+        <li class="submenu">
+          <%= file.title %> (<%= length(file.children) %>)
+          <%= render("file_list.html", files: file.children) %>
+        </li>
+        <% else %>
+        <li class="single"><%= link(file.title, to: "/file/" <> file.path) %></li>
+      <% end %>
     <% end %>
-  <% end %>
-</ul>
+    <li><a href="/file/new">Add</a></li>
+  </ul>
+</div>

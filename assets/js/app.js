@@ -25,7 +25,90 @@ class HelloReact extends React.Component {
   }
 }
 
-ReactDOM.render( 
-  <HelloReact />,
-  document.getElementById("hello-react")
+//ReactDOM.render( 
+  //<HelloReact />,
+  //document.getElementById("hello-react")
+//)
+//
+
+/********************************************************************************
+ *                                                                              *
+ * File list                                                                    *
+ *                                                                              *
+ *******************************************************************************/
+
+class ListItem extends React.Component {
+  render() {
+    const title = this.props.item.title;
+    const children = this.props.item.children;
+    const path = '/file/' + this.props.item.path;
+
+    if(children.length == 0) {
+      return (
+        <li><a href={path}>{title}</a></li>
+      );
+    }
+    else {
+      return(
+        <li>{title}<FileList items={children} /></li>
+      );
+    }
+  }
+}
+class FileList extends React.Component {
+  render() {
+    
+    const items = [];
+    this.props.items.forEach((item) => {
+      items.push(
+        <ListItem item={item} key={item.path} />
+      );
+    });
+
+
+    return (
+      <ul>
+      {items}
+      </ul>
+    );
+  }
+}
+
+
+class FileListLoader extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      items: []
+    }
+  }
+
+  componentDidMount() {
+    fetch("/api/file/")
+    .then(results =>  {
+      return results.json();
+    })
+    .then(data => {
+      this.setState({items: data});
+      console.log("Loaded items: ", this.state.items);
+    })
+  }
+
+  render() {
+    return(<FileList items={this.state.items} />);
+  }
+}
+
+ReactDOM.render(
+  <FileListLoader />,
+  document.getElementById("file-list")
 )
+//ReactDOM.render( 
+  //<FileList />,
+  //document.getElementById("file-list")
+//)
+
+
+
+
+
