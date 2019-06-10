@@ -19,18 +19,6 @@ import "phoenix_html"
 import React from "react"
 import ReactDOM from "react-dom"
 
-class HelloReact extends React.Component {
-  render() {
-    return (<h1>Hello React!</h1>)
-  }
-}
-
-//ReactDOM.render( 
-  //<HelloReact />,
-  //document.getElementById("hello-react")
-//)
-//
-
 /********************************************************************************
  *                                                                              *
  * File list                                                                    *
@@ -50,14 +38,47 @@ class ListItem extends React.Component {
     }
     else {
       return(
-        <li>{title}<FileList items={children} /></li>
+        <li>{title}<FileList items={children} basePath={this.props.item.path} /></li>
       );
     }
   }
 }
 class FileList extends React.Component {
+
+	addNew(event) {
+		event.stopPropagation();
+		let fileName = window.prompt("Bestandsnaam", "*.md");
+
+		if(! fileName) {
+			return;
+		}
+		// Default to md files.
+		if(! fileName.match(/\.[^\.]+$/)) {
+			fileName = fileName + '.md';
+		}
+
+		let url = this.props.basePath + '/' + fileName;
+		let title = fileName.replace(/\.[^\.]+$/, '');       console.log(this.props);
+		console.log("Creating file ", url );
+
+		fetch('/file?path=' + url, {
+			method: 'post',
+			headers: {'Content-Type':'application/json'},
+		})
+    .then(function(response) {
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
+      location.href = "/file/" + url;
+    })
+    .catch(function(error) {
+      alert("Bestandsnaam ongeldig.");
+    });
+	
+	}
+
   render() {
-    
+
     const items = [];
     this.props.items.forEach((item) => {
       items.push(
@@ -65,12 +86,24 @@ class FileList extends React.Component {
       );
     });
 
-
+    if(items.length > 10) {
     return (
       <ul>
+      <li><button onClick={(e) => this.addNew(e)}>+</button></li>
       {items}
+      <li><button onClick={(e) => this.addNew(e)}>+</button></li>
+
       </ul>
-    );
+    )
+    } else {
+      return (
+        <ul>
+        {items}
+        <li><button onClick={(e) => this.addNew(e)}>+</button></li>
+
+        </ul>
+      );
+    }
   }
 }
 
@@ -90,12 +123,12 @@ class FileListLoader extends React.Component {
     })
     .then(data => {
       this.setState({items: data});
-      console.log("Loaded items: ", this.state.items);
+      //console.log("Loaded items: ", this.state.items);
     })
   }
 
   render() {
-    return(<FileList items={this.state.items} />);
+    return(<FileList items={this.state.items} basePath="" />);
   }
 }
 
@@ -103,7 +136,7 @@ ReactDOM.render(
   <FileListLoader />,
   document.getElementById("file-list")
 )
-//ReactDOM.render( 
+//ReactDOM.render(
   //<FileList />,
   //document.getElementById("file-list")
 //)
