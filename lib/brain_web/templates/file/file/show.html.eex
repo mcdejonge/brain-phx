@@ -1,12 +1,14 @@
 <div class="file-list"><%= render("file_list.html", files: @files) %></div>
 <div class="content">
   <h1><%= @file.title %></h1>
+  <div id="edit-button-top"></div>
 
   <div class="file_contents">
     <%= case @file.type do %>
       <% "md" -> %> <%= raw(Earmark.as_html!(BrainWeb.StripUTF8.strip_utf(@file.contents))) %>
         <% "html" -> %> <%= @file.contents %>
         <% _ -> %> <pre><code><%= @file.contents %></code></pre>
-    <% end %>
+        <% end %>
   </div>
+  <div id="edit-button-bottom"></div>
 </div>

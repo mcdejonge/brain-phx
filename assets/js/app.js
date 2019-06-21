@@ -136,12 +136,41 @@ ReactDOM.render(
   <FileListLoader />,
   document.getElementById("file-list")
 )
-//ReactDOM.render(
-  //<FileList />,
-  //document.getElementById("file-list")
-//)
 
+/********************************************************************************
+ *                                                                              *
+ * File editor                                                                  *
+ *                                                                              *
+ *******************************************************************************/
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEdit} from '@fortawesome/free-solid-svg-icons'
+//const element = <FontAwesomeIcon icon={faEdit} />
+//ReactDOM.render(element, document.body)
 
+class ActivateEditorButton extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.openEditor = this.openEditor.bind(this);
+    // TODO load url here
+  }
+
+  openEditor(event) {
+    event.stopPropagation();
+    console.log("Opening editor");
+  }
+
+  render() {
+    return(<button onClick={this.openEditor}><FontAwesomeIcon icon={faEdit} /></button>);
+  }
+}
+ReactDOM.render(
+  <ActivateEditorButton />,
+  document.getElementById("edit-button-top")
+)
+ReactDOM.render(
+  <ActivateEditorButton />,
+  document.getElementById("edit-button-bottom")
+)
 
 
