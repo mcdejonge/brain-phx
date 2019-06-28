@@ -169,10 +169,10 @@ class Editor extends React.Component {
       body: JSON.stringify({'contents' : this.state.contents})
     })
     .then(function(response) {
+      document.getElementById('editor-wrapper').style.display = "none";
       if (!response.ok) {
         throw Error(response.statusText);
       }
-      document.getElementById('editor-wrapper').style.display = "none";
     })
     .catch(function(error) {
       alert('Bestand kon niet worden opgeslagen.');
