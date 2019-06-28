@@ -144,20 +144,100 @@ ReactDOM.render(
  *******************************************************************************/
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit} from '@fortawesome/free-solid-svg-icons'
-//const element = <FontAwesomeIcon icon={faEdit} />
-//ReactDOM.render(element, document.body)
+import { faCheckCircle} from '@fortawesome/free-solid-svg-icons'
 
+class Editor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      url: null,
+      data : {}
+    }
+    this.closeEditor = this.closeEditor.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  closeEditor(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    fetch(this.props.url, {
+      method: 'put',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Accept' : 'application/json',
+      },
+      body: JSON.stringify({'contents' : this.state.contents})
+    })
+    .then(function(response) {
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
+      document.getElementById('editor-wrapper').style.display = "none";
+    })
+    .catch(function(error) {
+      alert('Bestand kon niet worden opgeslagen.');
+    })
+  }
+
+  handleChange(event) {
+    this.setState({contents: event.target.value});
+  }
+  componentDidMount() {
+    fetch(this.props.url, {
+      method: 'get',
+      headers: {'Accept' : 'application/json'},
+    })
+    .then(function(response) {
+      if(!response.ok) {
+        throw Error(response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      this.setState({
+        url : this.props.url,
+        data : data,
+        contents : data.contents
+
+      });
+    })
+    .catch(function(error) {
+      alert('Ongeldig bestand.');
+    })
+  }
+
+  render() {
+    document.getElementById('editor-wrapper').style.display = "block";
+    return(
+      <div id="editor-inner">
+        <form onSubmit={this.closeEditor}>
+          <textarea name="editor-content" value={this.state.contents} onChange={this.handleChange} />
+          <button onClick={this.closeEditor}><FontAwesomeIcon icon={faCheckCircle} /></button>
+        </form>
+      </div>
+    )
+  }
+
+}
 class ActivateEditorButton extends React.Component {
 
   constructor(props) {
     super(props);
     this.openEditor = this.openEditor.bind(this);
-    // TODO load url here
+    this.state = {
+      url : location.href.replace(/https*:\/\/.*?\//, '/api/')
+
+    }
   }
 
   openEditor(event) {
     event.stopPropagation();
-    console.log("Opening editor");
+    if(this.state.editorOpen) {
+      return;
+    }
+
+    ReactDOM.render(<Editor url={this.state.url} />, document.getElementById('editor-wrapper'));
+
   }
 
   render() {

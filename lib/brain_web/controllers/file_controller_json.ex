@@ -40,6 +40,19 @@ defmodule BrainWeb.File.FileControllerJSON do
     end
   end
 
+  def update(conn, %{"contents" => contents}) do
+    # HACK the first element in the path info is "file". It needs to be
+    # stripped.
+    [_|[_| path_elems]] = conn.path_info
+    path = Enum.map(path_elems, &(URI.decode(&1)))
+           |> Enum.join("/")
+    # TODO
+    json(conn, [])
+  end
 
-  # TODO the rest
+  def delete(conn, _params) do
+    # TODO
+    conn
+  end
+
 end

@@ -3,7 +3,7 @@
   <h1><%= @file.title %></h1>
   <div id="edit-button-top"></div>
 
-  <div class="file_contents">
+  <div id="file-contents">
     <%= case @file.type do %>
       <% "md" -> %> <%= raw(Earmark.as_html!(BrainWeb.StripUTF8.strip_utf(@file.contents))) %>
         <% "html" -> %> <%= @file.contents %>
@@ -11,4 +11,5 @@
         <% end %>
   </div>
   <div id="edit-button-bottom"></div>
+  <div id="editor-wrapper"></div>
 </div>
